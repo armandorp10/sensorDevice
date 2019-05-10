@@ -5,3 +5,4 @@ RUN apt-get update \
  && pip3 install paho-mqtt
 
 COPY sensorT-V1.py /home/
+CMD python3 /home/sensorT-V1.py
