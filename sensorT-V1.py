@@ -49,9 +49,10 @@ client = mqtt.Client("SensorT")
 client.connect("172.24.100.101",8081)
 exists = os.path.exists('/sys/bus/w1')
 
+
 if exists == True:
-	Sensor_dir = glob.glob('/sys/bus/w1/devices/' + '28*')[0]
-	while True:
+    Sensor_dir = glob.glob('/sys/bus/w1/devices/' + '28*')[0]
+    while True:
         fSensor = open(Sensor_dir + '/w1_slave', 'r')
         linSensor = fSensor.readlines()
         fSensor.close()
