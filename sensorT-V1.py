@@ -4,6 +4,7 @@ import glob
 import time
 import paho.mqtt.client as mqtt
 
+
 class MLX90614():
 
     MLX90614_RAWIR1=0x04
