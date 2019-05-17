@@ -6,4 +6,4 @@ RUN apt-get update \
  && pip3 install requests
 
 COPY sensorT-V1.py /home/
-CMD python3 /home/sensorT-V1.py
+CMD modprobe i2c-dev && python3 /home/sensorT-V1.py
