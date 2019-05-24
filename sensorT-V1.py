@@ -95,7 +95,7 @@ if exists == True:
             time.sleep(frec)
 
         except:
-		    print("An exception ocurred")
+            print("An exception ocurred")
 
 else:
     sensor = MLX90614()
@@ -135,6 +135,6 @@ else:
                 print("Normal temperature")
 
             time.sleep(frec)
-            
+
         except:
-		    print("An exception ocurred")
+            print("An exception ocurred")
