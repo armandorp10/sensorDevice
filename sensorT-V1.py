@@ -51,82 +51,90 @@ if exists == True:
     Sensor_dir = glob.glob('/sys/bus/w1/devices/' + '28*')[0]
     frecuency = 10
     while True:
-        AvgTemp = 0.0
-        h = datetime.datetime.now().time().hour
-        if h > 11:
-            iter = 20
-            frec = 2
-        else:
-            iter = 9
-            frec = 10
+        try:
+            AvgTemp = 0.0
+            h = datetime.datetime.now().time().hour
+            if h > 11:
+                iter = 20
+                frec = 2
+            else:
+                iter = 9
+                frec = 10
 
-        for i in range(iter):
-            fSensor = open(Sensor_dir + '/w1_slave', 'r')
-            linSensor = fSensor.readlines()
-            fSensor.close()
+            for i in range(iter):
+                fSensor = open(Sensor_dir + '/w1_slave', 'r')
+                linSensor = fSensor.readlines()
+                fSensor.close()
 
-            posTemp = linSensor[1].find('t=')
-            # If is a valid position
-            if posTemp != -1:
-                strTemp = linSensor[1][posTemp+2:]
-                temperature = float(strTemp) / 1000.0
+                posTemp = linSensor[1].find('t=')
+                # If is a valid position
+                if posTemp != -1:
+                    strTemp = linSensor[1][posTemp+2:]
+                    temperature = float(strTemp) / 1000.0
 
-            AvgTemp = AvgTemp + temperature
-            time.sleep(.100)
+                AvgTemp = AvgTemp + temperature
+                time.sleep(.100)
 
-        AvgTemp = AvgTemp / iter
+            AvgTemp = AvgTemp / iter
 
-        data = {
-            'value': AvgTemp,
-            'unit': 'C',
-            'place': 'Uniandes',
-            'published_date': datetime.datetime.now()
-        }
+            data = {
+                'value': AvgTemp,
+                'unit': 'C',
+                'place': 'Uniandes',
+                'published_date': datetime.datetime.now()
+            }
 
-        requests.post("http://172.24.41.194:8080/temperaturecreate/", data)
-        print (AvgTemp)
+            requests.post("http://172.24.41.194:8080/temperaturecreate/", data)
+            print (AvgTemp)
 
-        if (AvgTemp > 30):
-            print("Danger, high temperature")
-        else:
-            print("Normal temperature")
+            if (AvgTemp > 30):
+                print("Danger, high temperature")
+            else:
+                print("Normal temperature")
 
-        time.sleep(frec)
+            time.sleep(frec)
+
+        except:
+		    print("An exception ocurred")
 
 else:
     sensor = MLX90614()
     frecuency = 10
     while True:
-        AvgTemp = 0.0
-        h = datetime.datetime.now().time().hour
-        if h > 11:
-            iter = 20
-            frec = 2
-        else:
-            iter = 9
-            frec = 10
+        try:
+            AvgTemp = 0.0
+            h = datetime.datetime.now().time().hour
+            if h > 11:
+                iter = 20
+                frec = 2
+            else:
+                iter = 9
+                frec = 10
 
-        for i in range(iter):
-            temperature = sensor.get_amb_temp()
+            for i in range(iter):
+                temperature = sensor.get_amb_temp()
 
-            AvgTemp = AvgTemp + temperature
-            time.sleep(.100)
+                AvgTemp = AvgTemp + temperature
+                time.sleep(.100)
 
-        AvgTemp = AvgTemp / iter
+            AvgTemp = AvgTemp / iter
 
-        data = {
-            'value': AvgTemp,
-            'unit': 'C',
-            'place': 'Uniandes',
-            'published_date': datetime.datetime.now()
-        }
+            data = {
+                'value': AvgTemp,
+                'unit': 'C',
+                'place': 'Uniandes',
+                'published_date': datetime.datetime.now()
+            }
 
-        requests.post("http://172.24.41.194:8080/temperaturecreate/", data)
-        print (AvgTemp)
+            requests.post("http://172.24.41.194:8080/temperaturecreate/", data)
+            print (AvgTemp)
 
-        if (AvgTemp > 30):
-            print("Danger, high temperature")
-        else:
-            print("Normal temperature")
+            if (AvgTemp > 30):
+                print("Danger, high temperature")
+            else:
+                print("Normal temperature")
 
-        time.sleep(frec)
+            time.sleep(frec)
+            
+        except:
+		    print("An exception ocurred")
