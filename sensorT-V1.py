@@ -5,6 +5,7 @@ import time
 import datetime
 import requests
 
+
 class MLX90614():
 
     MLX90614_RAWIR1=0x04
