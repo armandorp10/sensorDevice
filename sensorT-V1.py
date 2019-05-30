@@ -2,8 +2,7 @@ import smbus
 import os
 import glob
 import time
-import datetime
-import requests
+import paho.mqtt.client as mqtt
 
 
 class MLX90614():
@@ -46,69 +45,33 @@ class MLX90614():
         data = self.read_reg(self.MLX90614_TOBJ1)
         return self.data_to_temp(data)
 
+
+client = mqtt.Client("SensorT")
+client.connect("172.24.100.101",8081)
 exists = os.path.exists('/sys/bus/w1')
+
 
 if exists == True:
     Sensor_dir = glob.glob('/sys/bus/w1/devices/' + '28*')[0]
     while True:
-        try:    
-            average = 0.0
-            cont = 0
+        fSensor = open(Sensor_dir + '/w1_slave', 'r')
+        linSensor = fSensor.readlines()
+        fSensor.close()
 
-            fSensor = open(Sensor_dir + '/w1_slave', 'r')
-            linSensor = fSensor.readlines()
-            fSensor.close()
+        posTemp = linSensor[1].find('t=')
+        # If is a valid position
+        if posTemp != -1:
+           strTemp = linSensor[1][posTemp+2:]
+           temperature = float(strTemp) / 1000.0
 
-            posTemp = linSensor[1].find('t=')
-            # If is a valid position
-            if posTemp != -1:
-                strTemp = linSensor[1][posTemp+2:]
-                temperature = float(strTemp) / 1000.0
+        client.publish("topic1",temperature)
+        print (temperature)
+        time.sleep(1)
 
-            # Obtener promedio de temperaturas
-            for i in range(9):
-                time.sleep(0.1)
-                cont = cont + temperature
-
-            average = cont / 10
-            data = {
-                "value": average,
-                "unit": "C",
-                "date": datetime.datetime.now()
-            }
-
-            # Enviar promedio a web service
-            requests.post("http://172.24.41.194:5000/", data)
-            print(data)
-        except:
-            print("An exception ocurred")
-        time.sleep(5)
-        
 else:
-    sensor = MLX90614()
-    while True:
-        try:
-            average = 0.0
-            cont = 0
-
-            temperature = sensor.get_amb_temp()
-
-            # Obtener promedio de temperaturas
-            for i in range(9):
-                time.sleep(0.1)
-                cont = cont + temperature
-
-            average = cont / 10
-            data = {
-                "value": average,
-                "unit": "C",
-                "date": datetime.datetime.now()
-            }
-
-            # Enviar promedio a web service
-            requests.post("http://172.24.41.194:5000/", data)
-            print (data)
-        except:
-            print("An exception ocurred")
-        time.sleep(5)
-        
+	sensor = MLX90614()
+	while True:
+	    temperature = sensor.get_amb_temp()
+	    client.publish("topic1",temperature)
+	    print (temperature)
+	    time.sleep(1)
