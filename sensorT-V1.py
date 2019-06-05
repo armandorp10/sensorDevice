@@ -2,8 +2,8 @@ import smbus
 import os
 import glob
 import time
-import paho.mqtt.client as mqtt
-
+import datetime
+import requests
 
 class MLX90614():
 
@@ -45,33 +45,96 @@ class MLX90614():
         data = self.read_reg(self.MLX90614_TOBJ1)
         return self.data_to_temp(data)
 
-
-client = mqtt.Client("SensorT")
-client.connect("172.24.100.101",8081)
 exists = os.path.exists('/sys/bus/w1')
-
 
 if exists == True:
     Sensor_dir = glob.glob('/sys/bus/w1/devices/' + '28*')[0]
+    frecuency = 10
     while True:
-        fSensor = open(Sensor_dir + '/w1_slave', 'r')
-        linSensor = fSensor.readlines()
-        fSensor.close()
+        try:
+            AvgTemp = 0.0
+            h = datetime.datetime.now().time().hour
+            if h > 11:
+                iter = 20
+                frec = 2
+            else:
+                iter = 9
+                frec = 10
 
-        posTemp = linSensor[1].find('t=')
-        # If is a valid position
-        if posTemp != -1:
-           strTemp = linSensor[1][posTemp+2:]
-           temperature = float(strTemp) / 1000.0
+            for i in range(iter):
+                fSensor = open(Sensor_dir + '/w1_slave', 'r')
+                linSensor = fSensor.readlines()
+                fSensor.close()
 
-        client.publish("topic1",temperature)
-        print (temperature)
-        time.sleep(1)
+                posTemp = linSensor[1].find('t=')
+                # If is a valid position
+                if posTemp != -1:
+                    strTemp = linSensor[1][posTemp+2:]
+                    temperature = float(strTemp) / 1000.0
+
+                AvgTemp = AvgTemp + temperature
+                time.sleep(.100)
+
+            AvgTemp = AvgTemp / iter
+
+            data = {
+                'value': AvgTemp,
+                'unit': 'C',
+                'place': 'Uniandes',
+                'published_date': datetime.datetime.now()
+            }
+
+            requests.post("http://172.24.41.194:8080/temperaturecreate/", data)
+            print (AvgTemp)
+
+            if (AvgTemp > 30):
+                print("Danger, high temperature")
+            else:
+                print("Normal temperature")
+
+            time.sleep(frec)
+
+        except:
+            print("An exception ocurred")
 
 else:
-	sensor = MLX90614()
-	while True:
-	    temperature = sensor.get_amb_temp()
-	    client.publish("topic1",temperature)
-	    print (temperature)
-	    time.sleep(1)
+    sensor = MLX90614()
+    frecuency = 10
+    while True:
+        try:
+            AvgTemp = 0.0
+            h = datetime.datetime.now().time().hour
+            if h > 11:
+                iter = 20
+                frec = 2
+            else:
+                iter = 9
+                frec = 10
+
+            for i in range(iter):
+                temperature = sensor.get_amb_temp()
+
+                AvgTemp = AvgTemp + temperature
+                time.sleep(.100)
+
+            AvgTemp = AvgTemp / iter
+
+            data = {
+                'value': AvgTemp,
+                'unit': 'C',
+                'place': 'Uniandes',
+                'published_date': datetime.datetime.now()
+            }
+
+            requests.post("http://172.24.41.194:8080/temperaturecreate/", data)
+            print (AvgTemp)
+
+            if (AvgTemp > 30):
+                print("Danger, high temperature")
+            else:
+                print("Normal temperature")
+
+            time.sleep(frec)
+
+        except:
+            print("An exception ocurred")
